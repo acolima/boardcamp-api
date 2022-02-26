@@ -1,14 +1,13 @@
-import express from "express"
-import dotenv from "dotenv"
-import pg from "pg"
-
-dotenv.config()
-
-const { Pool } = pg
-
-//const connection = new Pool(process.env.DATABASE_URL)
+import "./setup.js"
+import express, { json } from "express"
+import cors from "cors"
+import router from "./Routes/index.js"
 
 const server = express()
+
+server.use(cors())
+server.use(json())
+server.use(router)
 
 server.listen(process.env.PORT, () => {
   console.log(`Server listening on port ${process.env.PORT}`)
