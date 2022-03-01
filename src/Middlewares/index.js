@@ -1,5 +1,7 @@
-import categoriesValidationMiddleware from "./categoriesValidationMiddleware.js"
+import { categoriesValidation } from "./categoriesValidationMiddleware.js"
+import { gamesValidation } from "./gamesValidationMiddleware.js"
 
 export {
-  categoriesValidationMiddleware
+  categoriesValidation,
+  gamesValidation
 }
