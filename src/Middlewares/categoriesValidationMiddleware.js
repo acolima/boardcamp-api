@@ -11,9 +11,14 @@ export async function categoriesValidation(req, res, next) {
   if (validation.error)
     return res.status(400).send("O campo não pode ser vazio")
 
-  const { rows: category } = await connection.query('SELECT id FROM categories WHERE name=$1', [categoryName.name])
-  if (category.length > 0)
-    return res.status(409).send("Categoria já existe")
+  try {
+    const { rows: category } = await connection.query('SELECT id FROM categories WHERE name=$1', [categoryName.name])
+    if (category.length > 0)
+      return res.status(409).send("Categoria já existe")
+  } catch (error) {
+    console.error(error)
+    res.sendStatus(500)
+  }
 
   res.locals.categoryName = categoryName.name
 

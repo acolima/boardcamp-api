@@ -17,13 +17,19 @@ export async function gamesValidation(req, res, next) {
     return res.status(400).send("Os dados devem ser preenchidos corretamente")
   }
 
-  const { rows: category } = await connection.query('SELECT id FROM categories WHERE categories.id=$1', [game.categoryId])
-  if (category.length === 0)
-    return res.status(400).send("Categoria não existe")
+  try {
+    const { rows: category } = await connection.query('SELECT id FROM categories WHERE categories.id=$1', [game.categoryId])
+    if (category.length === 0)
+      return res.status(400).send("Categoria não existe")
 
-  const { rows: gameName } = await connection.query('SELECT id FROM games WHERE games.name=$1', [game.name])
-  if (gameName.length !== 0)
-    return res.status(409).send("Jogo já cadastrado")
+    const { rows: gameName } = await connection.query('SELECT id FROM games WHERE games.name=$1', [game.name])
+    if (gameName.length !== 0)
+      return res.status(409).send("Jogo já cadastrado")
+
+  } catch (error) {
+    console.error(error)
+    res.sendStatus(500)
+  }
 
   res.locals.newGame = game
 

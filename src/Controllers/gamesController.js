@@ -13,7 +13,7 @@ export async function addGame(req, res) {
     )
     res.sendStatus(201)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.sendStatus(500)
   }
 }
@@ -39,7 +39,7 @@ export async function listGames(req, res) {
 
     res.send(games)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.sendStatus(500)
   }
 }

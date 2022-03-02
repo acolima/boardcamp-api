@@ -6,7 +6,7 @@ export async function listCategories(req, res) {
 
     res.send(categories)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.sendStatus(500)
   }
 }
@@ -19,7 +19,7 @@ export async function addCategory(req, res) {
 
     res.sendStatus(201)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.sendStatus(500)
   }
 }
