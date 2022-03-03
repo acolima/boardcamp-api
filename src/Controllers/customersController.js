@@ -23,3 +23,45 @@ export async function addCustomer(req, res) {
     res.sendStatus(500)
   }
 }
+
+export async function listCustomers(req, res) {
+  const { cpf } = req.query
+
+  try {
+    if (cpf) {
+      const { rows: customers } = await connection.query(`
+        SELECT * FROM customers
+        WHERE cpf LIKE $1
+      `, [`${cpf}%`])
+      return res.send(customers)
+    }
+
+    const { rows: customers } = await connection.query(`
+      SELECT * FROM customers
+    `)
+
+    res.send(customers)
+  } catch (error) {
+    console.error(error)
+    res.sendStatus(500)
+  }
+}
+
+export async function searchCustomerId(req, res) {
+  const { id } = req.params
+
+  try {
+    const { rows: customer } = await connection.query(`
+      SELECT * FROM customers
+      WHERE id=$1
+    `, [id])
+
+    if (customer.length === 0)
+      return res.sendStatus(404)
+
+    res.send(customer)
+  } catch (error) {
+    console.error(error)
+    res.sendStatus(500)
+  }
+}
