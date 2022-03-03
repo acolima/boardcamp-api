@@ -1,8 +1,13 @@
-import connection from "../db.js"
 import customerSchema from "../Schemas/customerSchema.js"
+import { stripHtml } from "string-strip-html"
 
 export async function customerValidation(req, res, next) {
-  const customer = req.body
+  const customer = {
+    name: stripHtml(req.body.name).result.trim(),
+    phone: stripHtml(req.body.phone).result.trim(),
+    cpf: stripHtml(req.body.cpf).result.trim(),
+    birthday: stripHtml(req.body.birthday).result.trim()
+  }
 
   const validation = customerSchema.validate(customer)
   if (validation.error) {
@@ -11,15 +16,6 @@ export async function customerValidation(req, res, next) {
   }
 
   // Fazer a validação da data
-
-  try {
-    const { rows: customerExists } = await connection.query('SELECT id FROM customers WHERE cpf=$1', [customer.cpf])
-    if (customerExists.length !== 0)
-      return res.status(409).send("Cliente já cadastrado")
-  } catch (error) {
-    console.error(error)
-    res.sendStatus(500)
-  }
 
   res.locals.customer = customer
 

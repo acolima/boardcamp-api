@@ -1,9 +1,9 @@
-import { categoriesValidation } from "./categoriesValidationMiddleware.js"
-import { gamesValidation } from "./gamesValidationMiddleware.js"
-import { customerValidation } from "./customersValidationMiddleware.js"
+import { categoryValidation } from "./categoryValidationMiddleware.js"
+import { customerValidation } from "./customerValidationMiddleware.js"
+import { gameValidation } from "./gameValidationMiddleware.js"
 
 export {
-  categoriesValidation,
+  categoryValidation,
   customerValidation,
-  gamesValidation
+  gameValidation
 }
