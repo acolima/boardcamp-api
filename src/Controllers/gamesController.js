@@ -44,6 +44,7 @@ export async function listGames(req, res) {
         JOIN categories ON categories.id=games."categoryId"
         WHERE LOWER(games.name) LIKE LOWER($1)
       `, [`${gameName}%`])
+
       return res.send(games)
     }
 
