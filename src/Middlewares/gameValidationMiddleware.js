@@ -1,7 +1,7 @@
 import gameSchema from "../Schemas/gameSchema.js"
 import { stripHtml } from "string-strip-html"
 
-export async function gameValidation(req, res, next) {
+export function gameValidation(req, res, next) {
   const game = {
     name: stripHtml(req.body.name).result.trim(),
     image: stripHtml(req.body.image).result.trim(),

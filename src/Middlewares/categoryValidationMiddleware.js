@@ -1,7 +1,7 @@
 import { stripHtml } from "string-strip-html"
 import categorySchema from "../Schemas/categorySchema.js"
 
-export async function categoryValidation(req, res, next) {
+export function categoryValidation(req, res, next) {
   const categoryName = {
     name: stripHtml(req.body.name).result.trim()
   }

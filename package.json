@@ -20,6 +20,7 @@
     "string-strip-html": "^9.1.6"
   },
   "devDependencies": {
+    "dayjs": "^1.10.8",
     "nodemon": "^2.0.15"
   }
 }
