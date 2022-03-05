@@ -96,3 +96,65 @@ export async function listRentals(req, res) {
     res.sendStatus(500)
   }
 }
+
+export async function endRental(req, res) {
+  const { id } = req.params
+  const returnDate = dayjs().format('YYYY-MM-DD')
+
+  try {
+    const { rows: result } = await connection.query(`
+      SELECT rentals.*, 
+        games."pricePerDay" AS price FROM rentals 
+      JOIN games ON games.id=rentals."gameId"      
+      WHERE rentals.id=$1
+    `, [id])
+
+    const rental = result[0]
+
+    if (result.length === 0) return res.sendStatus(404)
+    if (rental.returnDate !== null) return res.sendStatus(400)
+
+    let rentDate = dayjs(rental.rentDate)
+
+    let dateDifference = dayjs().diff(rentDate, 'days')
+    const delayFee = dateDifference * rental.price
+
+    await connection.query(`
+      UPDATE rentals
+      SET 
+        "returnDate"=$1, 
+        "delayFee"=$2
+      WHERE id=$3
+    `, [returnDate, delayFee, id])
+
+    res.sendStatus(200)
+  } catch (error) {
+    console.error(error)
+    res.sendStatus(500)
+  }
+}
+
+export async function deleteRental(req, res) {
+  const { id } = req.params
+
+  try {
+    const { rows: rental } = await connection.query(`
+      SELECT * FROM rentals WHERE id=$1
+    `, [id])
+
+    if (rental.length === 0)
+      return res.sendStatus(404)
+
+    if (rental[0].returnDate !== null)
+      return res.sendStatus(400)
+
+    await connection.query(`
+      DELETE FROM rentals WHERE id=$1
+    `, [id])
+
+    res.sendStatus(200)
+  } catch (error) {
+    console.error(error)
+    res.sendStatus(500)
+  }
+}
