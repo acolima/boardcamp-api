@@ -35,22 +35,19 @@ export async function addGame(req, res) {
 
 export async function listGames(req, res) {
   const gameName = req.query.name
+  let whereCondition = ''
+
+  if (gameName)
+    whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${gameName}%')`
 
   try {
-    if (gameName) {
-      const { rows: games } = await connection.query(`
-        SELECT games.*, categories.name AS "categoryName" 
-        FROM games
-        JOIN categories ON categories.id=games."categoryId"
-        WHERE LOWER(games.name) LIKE LOWER($1)
-      `, [`${gameName}%`])
-
-      return res.send(games)
-    }
-
     const { rows: games } = await connection.query(`
-      SELECT games.*, categories.name AS "categoryName" FROM games
-        JOIN categories ON categories.id=games."categoryId"
+      SELECT 
+        games.*, 
+        categories.name AS "categoryName" 
+      FROM games
+      JOIN categories ON categories.id=games."categoryId"
+      ${whereCondition}
     `)
 
     res.send(games)
