@@ -5,6 +5,8 @@ export async function addRental(req, res) {
   const { rental } = res.locals
   const date = dayjs().format('YYYY-MM-DD')
 
+  if (rental.daysRented === 0) return res.sendStatus(400)
+
   try {
     const searchCustomer = await connection.query(`
       SELECT * FROM customers WHERE id=$1
@@ -18,8 +20,13 @@ export async function addRental(req, res) {
 
     if (searchGame.rowCount === 0) return res.sendStatus(400)
 
-    // verificar o estoque disponível
-    //console.log(searchGame.rows[0].stockTotal)
+    const { rows: rentedGames } = await connection.query(`
+      SELECT "gameId", "returnDate" FROM rentals
+      WHERE "gameId"=$1 AND "returnDate" IS null
+    `, [rental.gameId])
+
+    const stockTotal = searchGame.rows[0].stockTotal
+    if (rentedGames.length >= stockTotal) return res.sendStatus(400)
 
     const gamePrice = searchGame.rows[0].pricePerDay
     const originalPrice = gamePrice * rental.daysRented
@@ -97,7 +104,7 @@ export async function listRentals(req, res) {
   }
 }
 
-export async function endRental(req, res) {
+export async function returnRental(req, res) {
   const { id } = req.params
   const returnDate = dayjs().format('YYYY-MM-DD')
 
