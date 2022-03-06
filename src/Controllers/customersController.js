@@ -25,18 +25,21 @@ export async function addCustomer(req, res) {
 }
 
 export async function listCustomers(req, res) {
-  const { cpf } = req.query
+  const { query } = res.locals
+
+  let cpf = ''
+  if (query.cpf) cpf = `WHERE cpf LIKE '${query.cpf}%'`
+  let offset = ''
+  if (query.offset) offset = `OFFSET ${query.offset}`
+  let limit = ''
+  if (query.limit) limit = `LIMIT ${query.limit}`
 
   try {
-    if (cpf) {
-      const { rows: customers } = await connection.query(`
-        SELECT * FROM customers WHERE cpf LIKE $1
-      `, [`${cpf}%`])
-      return res.send(customers)
-    }
-
     const { rows: customers } = await connection.query(`
       SELECT * FROM customers
+      ${cpf}
+      ${offset}
+      ${limit}
     `)
 
     res.send(customers)
@@ -57,7 +60,7 @@ export async function searchCustomerId(req, res) {
     if (customer.length === 0)
       return res.sendStatus(404)
 
-    res.send(customer)
+    res.send(customer[0])
   } catch (error) {
     console.error(error)
     res.sendStatus(500)

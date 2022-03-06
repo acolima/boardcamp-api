@@ -34,11 +34,14 @@ export async function addGame(req, res) {
 }
 
 export async function listGames(req, res) {
-  const gameName = req.query.name
-  let whereCondition = ''
+  const { query } = res.locals
 
-  if (gameName)
-    whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${gameName}%')`
+  let whereCondition = ''
+  if (query.name) whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${query.name}%')`
+  let offset = ''
+  if (req.query.offset) offset = `OFFSET ${req.query.offset}`
+  let limit = ''
+  if (req.query.limit) limit = `LIMIT ${req.query.limit}`
 
   try {
     const { rows: games } = await connection.query(`
@@ -48,6 +51,8 @@ export async function listGames(req, res) {
       FROM games
       JOIN categories ON categories.id=games."categoryId"
       ${whereCondition}
+      ${offset}
+      ${limit}
     `)
 
     res.send(games)

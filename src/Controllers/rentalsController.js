@@ -45,16 +45,25 @@ export async function addRental(req, res) {
   }
 }
 
-export async function listRentals(req, res) {
-  const { customerId, gameId } = req.query
-  let whereCondition = ''
 
-  if (customerId && gameId)
-    whereCondition = `WHERE customers.id=${customerId} AND games.id=${gameId}`
-  else if (customerId)
-    whereCondition = `WHERE customers.id=${customerId}`
-  else if (gameId)
-    whereCondition = `WHERE games.id=${gameId}`
+export async function listRentals(req, res) {
+  const { query } = res.locals
+
+  let offset = ''
+  if (query.offset)
+    offset = `OFFSET ${req.query.offset}`
+
+  let limit = ''
+  if (query.limit)
+    limit = `LIMIT ${req.query.limit}`
+
+  let whereCondition = ''
+  if (query.customerId && query.gameId)
+    whereCondition = `WHERE customers.id=${query.customerId} AND games.id=${query.gameId}`
+  else if (query.customerId)
+    whereCondition = `WHERE customers.id=${query.customerId}`
+  else if (query.gameId)
+    whereCondition = `WHERE games.id=${query.gameId}`
 
   try {
     const { rows: rentals } = await connection.query(`
@@ -71,6 +80,8 @@ export async function listRentals(req, res) {
       JOIN games ON games.id = rentals."gameId"
       JOIN categories ON categories.id = games."categoryId"
       ${whereCondition}
+      ${offset}
+      ${limit}
     `)
 
     const rentalsList = rentals.map(r => {

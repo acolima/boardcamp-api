@@ -1,8 +1,22 @@
 import connection from "../db.js"
 
 export async function listCategories(req, res) {
+  const { query } = res.locals
+
+  let offset = ''
+  if (query.offset)
+    offset = `OFFSET ${query.offset}`
+
+  let limit = ''
+  if (query.limit)
+    limit = `LIMIT ${query.limit}`
+
   try {
-    const { rows: categories } = await connection.query('SELECT * FROM categories')
+    const { rows: categories } = await connection.query(`
+      SELECT * FROM categories
+      ${offset}
+      ${limit}
+    `)
 
     res.send(categories)
   } catch (error) {
