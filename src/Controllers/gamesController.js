@@ -42,7 +42,7 @@ export async function listGames(req, res) {
   query.name = (query.name).replaceAll("'", "")
 
   let whereCondition = ''
-  if (query.name) whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${query.name}%')`
+  if (query.name && query.name !== 'NULL') whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${query.name}%')`
   let offset = ''
   if (req.query.offset) offset = `OFFSET ${req.query.offset}`
   let limit = ''
@@ -52,7 +52,7 @@ export async function listGames(req, res) {
   if (query.order && query.order !== 'NULL')
     if (query.desc) order = `ORDER BY ${query.order} DESC`
     else order = `ORDER BY ${query.order}`
-  console.log(whereCondition)
+
   try {
     const { rows: games } = await connection.query(`
       SELECT 

@@ -10,7 +10,9 @@ export function queryValidation(req, res, next) {
     customerId: req.query.customerId,
     gameId: req.query.gameId,
     order: SqlString.escape(req.query.order),
-    desc: req.query.desc
+    desc: req.query.desc,
+    status: SqlString.escape(req.query.status),
+    startDate: SqlString.escape(req.query.startDate)
   }
 
   const validation = querySchema.validate(query)

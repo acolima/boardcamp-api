@@ -49,6 +49,7 @@ export async function addRental(req, res) {
 export async function listRentals(req, res) {
   const { query } = res.locals
   query.order = (query.order).replaceAll("'", "\"")
+  query.status = (query.status).replaceAll("'", "")
 
   let whereCondition = ''
   if (query.customerId && query.gameId)
@@ -69,6 +70,15 @@ export async function listRentals(req, res) {
     if (query.desc) order = `ORDER BY ${query.order} DESC`
     else order = `ORDER BY ${query.order}`
 
+  let status = ''
+  if (query.status && query.status !== 'NULL') {
+    if (query.status === 'open') status = 'AND "returnDate" IS null'
+    else if (query.status === 'closed') status = 'AND "returnDate" IS NOT null'
+  }
+
+  let startDate = ''
+  if (query.startDate && query.startDate !== 'NULL') startDate = `AND "rentDate" >= ${query.startDate}`
+
   try {
     const { rows: rentals } = await connection.query(`
       SELECT 
@@ -83,10 +93,11 @@ export async function listRentals(req, res) {
       JOIN customers ON customers.id = rentals."customerId"
       JOIN games ON games.id = rentals."gameId"
       JOIN categories ON categories.id = games."categoryId"
-      ${whereCondition}
+      ${whereCondition} ${status} ${startDate}
       ${offset}
       ${limit}
       ${order}
+      
     `)
 
     const rentalsList = rentals.map(r => {
