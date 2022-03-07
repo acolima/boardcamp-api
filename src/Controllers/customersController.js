@@ -26,13 +26,21 @@ export async function addCustomer(req, res) {
 
 export async function listCustomers(req, res) {
   const { query } = res.locals
+  query.order = (query.order).replaceAll("'", "\"")
 
   let cpf = ''
   if (query.cpf) cpf = `WHERE cpf LIKE '${query.cpf}%'`
+
   let offset = ''
   if (query.offset) offset = `OFFSET ${query.offset}`
+
   let limit = ''
   if (query.limit) limit = `LIMIT ${query.limit}`
+
+  let order = ''
+  if (query.order && query.order !== 'NULL')
+    if (query.desc) order = `ORDER BY ${query.order} DESC`
+    else order = `ORDER BY ${query.order}`
 
   try {
     const { rows: customers } = await connection.query(`
@@ -40,6 +48,7 @@ export async function listCustomers(req, res) {
       ${cpf}
       ${offset}
       ${limit}
+      ${order}
     `)
 
     res.send(customers)

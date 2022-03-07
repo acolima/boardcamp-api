@@ -6,7 +6,9 @@ const querySchema = joi.object({
   offset: joi.number(),
   name: joi.string(),
   customerId: joi.number(),
-  gameId: joi.number()
+  gameId: joi.number(),
+  order: joi.string(),
+  desc: joi.string()
 })
 
 export default querySchema

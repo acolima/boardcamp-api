@@ -18,7 +18,8 @@
     "joi": "^17.6.0",
     "pg": "^8.7.3",
     "sqlstring": "^2.3.2",
-    "string-strip-html": "^9.1.6"
+    "string-strip-html": "^9.1.6",
+    "string.prototype.replaceall": "^1.0.6"
   },
   "devDependencies": {
     "@types/sqlstring": "^2.3.0",

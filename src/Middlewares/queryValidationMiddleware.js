@@ -1,13 +1,16 @@
 import querySchema from "../Schemas/querySchema.js"
+import SqlString from 'sqlstring'
 
 export function queryValidation(req, res, next) {
   const query = {
     cpf: req.query.cpf,
     limit: req.query.limit,
     offset: req.query.offset,
-    name: req.query.name,
+    name: SqlString.escape(req.query.name),
     customerId: req.query.customerId,
-    gameId: req.query.gameId
+    gameId: req.query.gameId,
+    order: SqlString.escape(req.query.order),
+    desc: req.query.desc
   }
 
   const validation = querySchema.validate(query)

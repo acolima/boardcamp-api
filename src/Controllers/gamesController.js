@@ -38,6 +38,8 @@ export async function addGame(req, res) {
 
 export async function listGames(req, res) {
   const { query } = res.locals
+  query.order = (query.order).replaceAll("'", "\"")
+  query.name = (query.name).replaceAll("'", "")
 
   let whereCondition = ''
   if (query.name) whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${query.name}%')`
@@ -46,6 +48,11 @@ export async function listGames(req, res) {
   let limit = ''
   if (req.query.limit) limit = `LIMIT ${req.query.limit}`
 
+  let order = ''
+  if (query.order && query.order !== 'NULL')
+    if (query.desc) order = `ORDER BY ${query.order} DESC`
+    else order = `ORDER BY ${query.order}`
+  console.log(whereCondition)
   try {
     const { rows: games } = await connection.query(`
       SELECT 
@@ -56,6 +63,7 @@ export async function listGames(req, res) {
       ${whereCondition}
       ${offset}
       ${limit}
+      ${order}
     `)
 
     res.send(games)

@@ -1,21 +1,29 @@
 import connection from "../db.js"
+import replaceAllInserter from 'string.prototype.replaceall';
+import querySchema from "../Schemas/querySchema.js";
+replaceAllInserter.shim();
 
 export async function listCategories(req, res) {
   const { query } = res.locals
+  query.order = (query.order).replaceAll("'", "\"")
 
   let offset = ''
-  if (query.offset)
-    offset = `OFFSET ${query.offset}`
+  if (query.offset) offset = `OFFSET ${query.offset}`
 
   let limit = ''
-  if (query.limit)
-    limit = `LIMIT ${query.limit}`
+  if (query.limit) limit = `LIMIT ${query.limit}`
+
+  let order = ''
+  if (query.order && query.order !== 'NULL')
+    if (query.desc) order = `ORDER BY ${query.order} DESC`
+    else order = `ORDER BY ${query.order}`
 
   try {
     const { rows: categories } = await connection.query(`
       SELECT * FROM categories
       ${offset}
       ${limit}
+      ${order}
     `)
 
     res.send(categories)
