@@ -1,29 +1,32 @@
 import connection from "../db.js"
 
 export async function addGame(req, res) {
-  const { newGame } = res.locals
+  const { name, image, stockTotal, categoryId } = req.body
+  let { pricePerDay } = req.body
+  pricePerDay = parseInt(pricePerDay *= 100)
 
   try {
     const searchCategory = await connection.query(`
       SELECT id FROM categories WHERE categories.id=$1
-    `, [newGame.categoryId])
+    `, [categoryId])
 
     if (searchCategory.rowCount === 0)
       return res.status(400).send("Categoria não existe")
 
     const searchGame = await connection.query(`
       SELECT id FROM games WHERE games.name=$1
-    `, [newGame.name])
+    `, [name])
 
     if (searchGame.rowCount !== 0)
       return res.status(409).send("Jogo já cadastrado")
+
 
     await connection.query(`
       INSERT INTO games 
         (name, image, "stockTotal", "categoryId", "pricePerDay")
       VALUES
         ($1, $2, $3, $4, $5)`,
-      [newGame.name, newGame.image, newGame.stockTotal, newGame.categoryId, newGame.pricePerDay]
+      [name, image, stockTotal, categoryId, pricePerDay]
     )
 
     res.sendStatus(201)

@@ -1,12 +1,12 @@
 import connection from "../db.js"
 
 export async function addCustomer(req, res) {
-  const { customer } = res.locals
+  const { name, phone, cpf, birthday } = req.body
 
   try {
     const searchCustomer = await connection.query(`
       SELECT id FROM customers WHERE cpf=$1
-    `, [customer.cpf])
+    `, [cpf])
 
     if (searchCustomer.rowCount !== 0)
       return res.status(409).send("Cliente já cadastrado")
@@ -15,7 +15,7 @@ export async function addCustomer(req, res) {
       INSERT INTO customers 
         (name, phone, cpf, birthday)
       VALUES ($1, $2, $3, $4)
-    `, [customer.name, customer.phone, customer.cpf, customer.birthday])
+    `, [name, phone, cpf, birthday])
 
     res.sendStatus(201)
   } catch (error) {
@@ -69,7 +69,7 @@ export async function searchCustomerId(req, res) {
 
 export async function updateCustomer(req, res) {
   const { id } = req.params
-  const { customer } = res.locals
+  const { name, phone, cpf, birthday } = req.body
 
   try {
     const { rows: searchId } = await connection.query(`
@@ -81,7 +81,7 @@ export async function updateCustomer(req, res) {
 
     const searchCustomer = await connection.query(`
       SELECT * FROM customers WHERE cpf=$1
-    `, [customer.cpf])
+    `, [cpf])
 
     if (searchCustomer.rowCount !== 0)
       if (searchCustomer.rows[0].id !== parseInt(id))
@@ -91,7 +91,7 @@ export async function updateCustomer(req, res) {
       UPDATE customers
         SET name=$1, phone=$2, cpf=$3, birthday=$4
       WHERE id=$5
-    `, [customer.name, customer.phone, customer.cpf, customer.birthday, id])
+    `, [name, phone, cpf, birthday, id])
 
     res.sendStatus(200)
   } catch (error) {

@@ -26,7 +26,7 @@ export async function listCategories(req, res) {
 }
 
 export async function addCategory(req, res) {
-  const { categoryName } = res.locals
+  const { name: categoryName } = req.body
 
   try {
     const searchCategory = await connection.query(`
