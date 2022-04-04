@@ -1,21 +1,15 @@
-import connection from "../db.js"
+import { customerRepository } from "../Repositories/index.js"
 
 export async function addCustomer(req, res) {
   const { name, phone, cpf, birthday } = req.body
 
   try {
-    const searchCustomer = await connection.query(`
-      SELECT id FROM customers WHERE cpf=$1
-    `, [cpf])
-
+    const searchCustomer = await customerRepository.searchCustomer(cpf)
     if (searchCustomer.rowCount !== 0)
       return res.status(409).send("Cliente já cadastrado")
 
-    await connection.query(`
-      INSERT INTO customers 
-        (name, phone, cpf, birthday)
-      VALUES ($1, $2, $3, $4)
-    `, [name, phone, cpf, birthday])
+    const newCustomer = { name, phone, cpf, birthday }
+    await customerRepository.addCustomer(newCustomer)
 
     res.sendStatus(201)
   } catch (error) {
@@ -43,13 +37,9 @@ export async function listCustomers(req, res) {
     else order = `ORDER BY ${query.order}`
 
   try {
-    const { rows: customers } = await connection.query(`
-      SELECT * FROM customers
-      ${cpf}
-      ${offset}
-      ${limit}
-      ${order}
-    `)
+    const { rows: customers } = await customerRepository.getCustomers(
+      cpf, offset, limit, order
+    )
 
     res.send(customers)
   } catch (error) {
@@ -62,10 +52,7 @@ export async function searchCustomerId(req, res) {
   const { id } = req.params
 
   try {
-    const { rows: customer } = await connection.query(`
-      SELECT * FROM customers WHERE id=$1
-    `, [id])
-
+    const { rows: customer } = await customerRepository.getCustomerById(id)
     if (customer.length === 0)
       return res.sendStatus(404)
 
@@ -81,26 +68,17 @@ export async function updateCustomer(req, res) {
   const { name, phone, cpf, birthday } = req.body
 
   try {
-    const { rows: searchId } = await connection.query(`
-      SELECT * FROM customers WHERE id=$1
-    `, [id])
-
+    const { rows: searchId } = await customerRepository.getCustomerById(id)
     if (searchId.length === 0)
       return res.sendStatus(404)
 
-    const searchCustomer = await connection.query(`
-      SELECT * FROM customers WHERE cpf=$1
-    `, [cpf])
-
+    const searchCustomer = await customerRepository.getCustomerByCpf(cpf)
     if (searchCustomer.rowCount !== 0)
       if (searchCustomer.rows[0].id !== parseInt(id))
         return res.sendStatus(409)
 
-    await connection.query(`
-      UPDATE customers
-        SET name=$1, phone=$2, cpf=$3, birthday=$4
-      WHERE id=$5
-    `, [name, phone, cpf, birthday, id])
+    const toUpdateCustomer = { nome, phone, cpf, birthday, id }
+    await customerRepository.updateCustomer(toUpdateCustomer)
 
     res.sendStatus(200)
   } catch (error) {

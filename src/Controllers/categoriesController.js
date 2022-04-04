@@ -1,6 +1,5 @@
-import connection from "../db.js"
-import replaceAllInserter from 'string.prototype.replaceall';
-import querySchema from "../Schemas/querySchema.js";
+import replaceAllInserter from 'string.prototype.replaceall'
+import { categoryRepository } from "../Repositories/index.js";
 replaceAllInserter.shim();
 
 export async function listCategories(req, res) {
@@ -19,12 +18,9 @@ export async function listCategories(req, res) {
     else order = `ORDER BY ${query.order}`
 
   try {
-    const { rows: categories } = await connection.query(`
-      SELECT * FROM categories
-      ${offset}
-      ${limit}
-      ${order}
-    `)
+    const { rows: categories } = await categoryRepository.listCategories(
+      offset, limit, order
+    )
 
     res.send(categories)
   } catch (error) {
@@ -37,15 +33,12 @@ export async function addCategory(req, res) {
   const { name: categoryName } = req.body
 
   try {
-    const searchCategory = await connection.query(`
-      SELECT id FROM categories WHERE name=$1
-    `, [categoryName])
-
+    const searchCategory = await categoryRepository.getCategoryByName(categoryName)
     if (searchCategory.rowCount !== 0) {
       return res.status(409).send("Categoria já existe")
     }
 
-    await connection.query('INSERT INTO categories (name) VALUES ($1)', [categoryName])
+    await categoryRepository.createCategory(name)
 
     res.sendStatus(201)
   } catch (error) {

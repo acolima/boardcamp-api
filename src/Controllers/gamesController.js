@@ -1,4 +1,4 @@
-import connection from "../db.js"
+import { categoryRepository, gameRepository } from "../Repositories/index.js"
 
 export async function addGame(req, res) {
   const { name, image, stockTotal, categoryId } = req.body
@@ -6,28 +6,19 @@ export async function addGame(req, res) {
   pricePerDay = parseInt(pricePerDay *= 100)
 
   try {
-    const searchCategory = await connection.query(`
-      SELECT id FROM categories WHERE categories.id=$1
-    `, [categoryId])
-
-    if (searchCategory.rowCount === 0)
+    const searchedCategory = await categoryRepository.getCategoryById(categoryId)
+    if (searchedCategory.rowCount === 0)
       return res.status(400).send("Categoria não existe")
 
-    const searchGame = await connection.query(`
-      SELECT id FROM games WHERE games.name=$1
-    `, [name])
-
+    const searchGame = await gameRepository.getGameByName(name)
     if (searchGame.rowCount !== 0)
       return res.status(409).send("Jogo já cadastrado")
 
+    const newGame = {
+      name, image, stockTotal, categoryId, pricePerDay
+    }
 
-    await connection.query(`
-      INSERT INTO games 
-        (name, image, "stockTotal", "categoryId", "pricePerDay")
-      VALUES
-        ($1, $2, $3, $4, $5)`,
-      [name, image, stockTotal, categoryId, pricePerDay]
-    )
+    await gameRepository.createGame(newGame)
 
     res.sendStatus(201)
   } catch (error) {
@@ -42,7 +33,8 @@ export async function listGames(req, res) {
   query.name = (query.name).replaceAll("'", "")
 
   let whereCondition = ''
-  if (query.name && query.name !== 'NULL') whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${query.name}%')`
+  if (query.name && query.name !== 'NULL')
+    whereCondition = `WHERE LOWER(games.name) LIKE LOWER('${query.name}%')`
   let offset = ''
   if (req.query.offset) offset = `OFFSET ${req.query.offset}`
   let limit = ''
@@ -54,17 +46,8 @@ export async function listGames(req, res) {
     else order = `ORDER BY ${query.order}`
 
   try {
-    const { rows: games } = await connection.query(`
-      SELECT 
-        games.*, 
-        categories.name AS "categoryName" 
-      FROM games
-      JOIN categories ON categories.id=games."categoryId"
-      ${whereCondition}
-      ${offset}
-      ${limit}
-      ${order}
-    `)
+    const { rows: games } = await gameRepository.listGames(
+      whereCondition, offset, limit, order)
 
     res.send(games)
   } catch (error) {

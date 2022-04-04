@@ -1,43 +1,31 @@
 import dayjs from "dayjs"
-import connection from "../db.js"
+import { customerRepository, gameRepository, rentalRepository } from "../Repositories/index.js"
 
 export async function addRental(req, res) {
   const { customerId, gameId, daysRented } = req.body
 
   const date = dayjs().format('YYYY-MM-DD')
 
-  if (daysRented === 0) return res.sendStatus(401)
+  if (daysRented === 0) return res.sendStatus(400)
 
   try {
-    const searchCustomer = await connection.query(`
-      SELECT * FROM customers WHERE id=$1
-    `, [customerId])
+    const searchCustomer = await customerRepository.getCustomerById(customerId)
+    if (searchCustomer.rowCount === 0) return res.sendStatus(401)
 
-    if (searchCustomer.rowCount === 0) return res.sendStatus(402)
+    const searchGame = await gameRepository.getGameById(gameId)
+    if (searchGame.rowCount === 0) return res.sendStatus(402)
 
-    const searchGame = await connection.query(`
-      SELECT * FROM games WHERE id=$1
-    `, [gameId])
-
-    if (searchGame.rowCount === 0) return res.sendStatus(403)
-
-    const { rows: rentedGames } = await connection.query(`
-      SELECT "gameId", "returnDate" FROM rentals
-      WHERE "gameId"=$1 AND "returnDate" IS null
-    `, [gameId])
-
+    const { rows: rentedGames } = await rentalRepository.getRentedGames(gameId)
     const stockTotal = searchGame.rows[0].stockTotal
-    if (rentedGames.length >= stockTotal) return res.sendStatus(400)
+    if (rentedGames.length >= stockTotal) return res.sendStatus(403)
 
     const gamePrice = searchGame.rows[0].pricePerDay
     const originalPrice = gamePrice * daysRented
 
-    await connection.query(`
-      INSERT INTO rentals
-        ("customerId", "gameId", "rentDate", "daysRented", "returnDate", "originalPrice", "delayFee")
-      VALUES
-        ($1, $2, $3, $4, null, ${originalPrice}, null)
-    `, [customerId, gameId, date, daysRented])
+    const newRental = {
+      customerId, gameId, date, daysRented, originalPrice
+    }
+    await rentalRepository.createRental(newRental)
 
     res.sendStatus(201)
   } catch (error) {
@@ -80,25 +68,9 @@ export async function listRentals(req, res) {
   if (query.startDate && query.startDate !== 'NULL') startDate = `AND "rentDate" >= ${query.startDate}`
 
   try {
-    const { rows: rentals } = await connection.query(`
-      SELECT 
-        rentals.*,
-        customers.id AS "cId",
-        customers.name AS "cName",
-        games.id AS "gId",
-        games.name AS "gName",
-        games."categoryId",
-        categories.name AS "categoryName"
-      FROM rentals
-      JOIN customers ON customers.id = rentals."customerId"
-      JOIN games ON games.id = rentals."gameId"
-      JOIN categories ON categories.id = games."categoryId"
-      ${whereCondition} ${status} ${startDate}
-      ${offset}
-      ${limit}
-      ${order}
-      
-    `)
+    const { rows: rentals } = await rentalRepository.getRentals(
+      whereCondition, status, startDate, offset, limit, order
+    )
 
     const rentalsList = rentals.map(r => {
       const rental = {
@@ -136,12 +108,7 @@ export async function returnRental(req, res) {
   const returnDate = dayjs().format('YYYY-MM-DD')
 
   try {
-    const { rows: result } = await connection.query(`
-      SELECT rentals.*, 
-        games."pricePerDay" AS price FROM rentals 
-      JOIN games ON games.id=rentals."gameId"      
-      WHERE rentals.id=$1
-    `, [id])
+    const { rows: result } = await rentalRepository.getRentalInfos(id)
 
     const rental = result[0]
 
@@ -153,13 +120,7 @@ export async function returnRental(req, res) {
     let dateDifference = dayjs().diff(rentDate, 'days')
     const delayFee = dateDifference * rental.price
 
-    await connection.query(`
-      UPDATE rentals
-      SET 
-        "returnDate"=$1, 
-        "delayFee"=$2
-      WHERE id=$3
-    `, [returnDate, delayFee, id])
+    await rentalRepository.returnRental(returnDate, delayFee, id)
 
     res.sendStatus(200)
   } catch (error) {
@@ -172,9 +133,7 @@ export async function deleteRental(req, res) {
   const { id } = req.params
 
   try {
-    const { rows: rental } = await connection.query(`
-      SELECT * FROM rentals WHERE id=$1
-    `, [id])
+    const { rows: rental } = await rentalRepository.getRentalById(id)
 
     if (rental.length === 0)
       return res.sendStatus(404)
@@ -182,9 +141,7 @@ export async function deleteRental(req, res) {
     if (rental[0].returnDate !== null)
       return res.sendStatus(400)
 
-    await connection.query(`
-      DELETE FROM rentals WHERE id=$1
-    `, [id])
+    await rentalRepository.deleteRental(id)
 
     res.sendStatus(200)
   } catch (error) {
