@@ -10,14 +10,14 @@ export async function addRental(req, res) {
 
   try {
     const searchCustomer = await customerRepository.getCustomerById(customerId)
-    if (searchCustomer.rowCount === 0) return res.sendStatus(401)
+    if (searchCustomer.rowCount === 0) return res.sendStatus(400)
 
     const searchGame = await gameRepository.getGameById(gameId)
-    if (searchGame.rowCount === 0) return res.sendStatus(402)
+    if (searchGame.rowCount === 0) return res.sendStatus(400)
 
     const { rows: rentedGames } = await rentalRepository.getRentedGames(gameId)
     const stockTotal = searchGame.rows[0].stockTotal
-    if (rentedGames.length >= stockTotal) return res.sendStatus(403)
+    if (rentedGames.length >= stockTotal) return res.sendStatus(400)
 
     const gamePrice = searchGame.rows[0].pricePerDay
     const originalPrice = gamePrice * daysRented
