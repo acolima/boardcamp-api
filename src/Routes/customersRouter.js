@@ -5,9 +5,9 @@ import customerSchema from "../Schemas/customerSchema.js"
 
 const customersRouter = Router()
 
-customersRouter.post("/customers", schemaValidation(customerSchema), addCustomer)
-customersRouter.get("/customers", queryValidation, listCustomers)
-customersRouter.get("/customers/:id", searchCustomerId)
-customersRouter.put("/customers/:id", schemaValidation(customerSchema), updateCustomer)
+customersRouter.post("/", schemaValidation(customerSchema), addCustomer)
+customersRouter.get("/", queryValidation, listCustomers)
+customersRouter.get("/:id", searchCustomerId)
+customersRouter.put("/:id", schemaValidation(customerSchema), updateCustomer)
 
 export default customersRouter

@@ -5,7 +5,7 @@ import categorySchema from "../Schemas/categorySchema.js"
 
 const categoriesRouter = Router()
 
-categoriesRouter.get("/categories", queryValidation, listCategories)
-categoriesRouter.post("/categories", schemaValidation(categorySchema), addCategory)
+categoriesRouter.get("/", queryValidation, listCategories)
+categoriesRouter.post("/", schemaValidation(categorySchema), addCategory)
 
 export default categoriesRouter

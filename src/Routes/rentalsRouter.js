@@ -5,9 +5,9 @@ import rentalSchema from "../Schemas/rentalSchema.js"
 
 const rentalsRouter = Router()
 
-rentalsRouter.post("/rentals", schemaValidation(rentalSchema), addRental)
-rentalsRouter.get("/rentals", queryValidation, listRentals)
-rentalsRouter.post("/rentals/:id/return", returnRental)
-rentalsRouter.delete("/rentals/:id", deleteRental)
+rentalsRouter.post("/", schemaValidation(rentalSchema), addRental)
+rentalsRouter.get("/", queryValidation, listRentals)
+rentalsRouter.post("/:id/return", returnRental)
+rentalsRouter.delete("/:id", deleteRental)
 
 export default rentalsRouter

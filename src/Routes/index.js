@@ -6,9 +6,9 @@ import rentalsRouter from "./rentalsRouter.js"
 
 const router = Router()
 
-router.use(categoriesRouter)
-router.use(gamesRouter)
-router.use(customersRouter)
-router.use(rentalsRouter)
+router.use('/categories', categoriesRouter)
+router.use('/games', gamesRouter)
+router.use('/customers', customersRouter)
+router.use('/rentals', rentalsRouter)
 
 export default router
